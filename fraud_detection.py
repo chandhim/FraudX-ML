@@ -19,6 +19,8 @@ newBalanceOrig = st.number_input("New Balance of Origin Account", min_value=0.0,
 oldBalanceDest = st.number_input("Old Balance of Destination Account", min_value=0.0, value=5000.0)
 newBalanceDest = st.number_input("New Balance of Destination Account", min_value=0.0, value = 0.0)
 
+
+
 if st.button("Predict"):
     input_data = pd.DataFrame(
         [
@@ -32,6 +34,8 @@ if st.button("Predict"):
             }
         ]
     )
+
+    
 
     prediction = model.predict(input_data)[0]
 
