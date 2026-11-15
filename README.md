@@ -1,149 +1,258 @@
-# FraudX: ML Fraud Detection
+<p align="center">
+  <img src="docs/images/banner.svg" alt="FraudX: Transaction Fraud Detection" width="100%">
+</p>
 
-FraudX detects fraudulent mobile-money transactions with a machine learning model. It has two parts:
+<p align="center">
+  <a href="https://fraudx.streamlit.app"><img src="https://static.streamlit.io/badges/streamlit_badge_black_white.svg" alt="Open in Streamlit"></a>
+  <a href="https://github.com/chandhim/FraudX/actions/workflows/tests.yml"><img src="https://github.com/chandhim/FraudX/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
+  <img src="https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white" alt="Python 3.12+">
+  <img src="https://img.shields.io/badge/scikit--learn-1.7.2-F7931E?logo=scikitlearn&logoColor=white" alt="scikit-learn 1.7.2">
+  <img src="https://img.shields.io/badge/Streamlit-1.67-FF4B4B?logo=streamlit&logoColor=white" alt="Streamlit 1.67">
+  <img src="https://img.shields.io/badge/Plotly-7.1-3F4F75?logo=plotly&logoColor=white" alt="Plotly 7.1">
+</p>
 
-- **`analysis.ipynb`**: exploratory data analysis and model training. Saves the trained pipeline to `fraud_detection_model.pkl`.
-- **`fraud_detection.py`**: a Streamlit web app that scores a single transaction with the saved model and shows the result, risk level and money flow.
+<p align="center">
+  <b>Score a mobile-money transaction, see the verdict, and see <i>why</i> the model decided it.</b><br>
+  <a href="https://fraudx.streamlit.app"><b>Open the live app</b></a> ·
+  <a href="#how-it-works">How it works</a> ·
+  <a href="#model-performance">Model performance</a> ·
+  <a href="#run-it-locally">Run it locally</a>
+</p>
 
-## Table of Contents
-- [Dataset](#dataset)
-- [Prerequisites](#prerequisites)
-- [Setup](#setup)
-- [Running the Web App](#running-the-web-app)
-- [Running the Notebook](#running-the-notebook)
-- [Running the Tests](#running-the-tests)
-- [Project Structure](#project-structure)
-- [Troubleshooting](#troubleshooting)
-- [Notes](#notes)
+<p align="center">
+  <img src="docs/images/app.gif" alt="Scoring the sample transactions in FraudX" width="90%">
+</p>
 
-## Dataset
+## Highlights
 
-The data is the **PaySim** simulated mobile-money dataset from Kaggle: about 6.3 million transactions, of which 0.13% are fraudulent. It is synthetic, so amounts are simulated units rather than a real currency.
+| | |
+|---|---|
+| **One-click samples** | Everyday payment, cash deposit, and two typical fraud patterns, each loaded and scored instantly |
+| **Explainable verdicts** | A chart of what pushed the score towards fraud or legitimate, taken directly from the model's weights |
+| **Data checks** | Balances that don't add up are flagged, but still scored, because in this data they are a fraud signal |
+| **Light and dark mode** | Follows the visitor's system theme, with a switcher in the menu |
+| **Tested** | Unit tests for the validation rules and headless UI tests, run on every push by GitHub Actions |
 
-- **Link:** [Fraud Detection Dataset on Kaggle](https://www.kaggle.com/datasets/amanalisiddiqui/fraud-detection-dataset)
+## How it works
 
-The dataset is only needed to run the notebook. The web app uses the committed model and works without it.
-
-1. Download the dataset (you may need a Kaggle account and to accept the dataset terms).
-2. Rename the CSV file to `creditcard.csv`. The notebook reads it under that name.
-3. Put it in the project root. CSV files are git-ignored, so it won't be committed by accident.
-
-## Prerequisites
-
-- Python 3.12 or newer (required by the pinned numpy, pandas and Streamlit versions)
-- pip
-- Git (optional, for cloning the repository)
-
-## Setup
-
-Create and activate a virtual environment:
-
-**Windows:**
-```bash
-python -m venv venv
-venv\Scripts\activate
+```mermaid
+flowchart LR
+    A[("PaySim dataset<br/>6.36M transactions")] --> B["Exploratory analysis<br/>analysis.ipynb"]
+    B --> C["Features<br/>type, amount,<br/>balances before and after"]
+    C --> D["Pipeline<br/>StandardScaler + OneHotEncoder<br/>+ LogisticRegression"]
+    D --> E[/"fraud_detection_model.pkl"/]
+    E --> F["Streamlit app<br/>fraud_detection.py"]
+    G["Visitor input<br/>or a sample"] --> H{"validation.py<br/>data checks"}
+    H -- "errors" --> I["Shown, not scored"]
+    H -- "ok or warnings" --> F
+    F --> J["Verdict, fraud score<br/>and score drivers"]
 ```
 
-**macOS/Linux:**
+<details>
+<summary><b>How the "what drove this score" chart is calculated</b></summary>
+<br>
+
+The model is a logistic regression, so its fraud score is a weighted sum of the (scaled) inputs passed through a sigmoid. Each input's contribution is its weight multiplied by its scaled value. The app groups these into four bars:
+
+- **Transaction type**: the one-hot encoded type
+- **Amount**
+- **Sender balances**: balance before and after, added together
+- **Receiver balances**: balance before and after, added together
+
+The before and after balances of the same account are strongly correlated, so on their own their contributions are large and cancel each other out. Adding them together gives an honest picture of each account's overall effect.
+
+</details>
+
+<details>
+<summary><b>About the data</b></summary>
+<br>
+
+[PaySim](https://www.kaggle.com/datasets/amanalisiddiqui/fraud-detection-dataset) simulates a month of mobile-money transactions based on real logs from a mobile money service. It has 6,362,620 transactions, of which 8,213 (0.13%) are fraud. Fraud only occurs in `TRANSFER` and `CASH_OUT` transactions, typically emptying the sender's account. The data is synthetic, so amounts are simulated units, not a real currency.
+
+</details>
+
+## Screenshots
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/app-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="docs/images/app-light.png">
+    <img src="docs/images/app-light.png" alt="FraudX scoring a transaction that drains the sender's account" width="100%">
+  </picture>
+  <br>
+  <sub>This screenshot follows your GitHub theme: switch GitHub between light and dark to see both versions of the app.</sub>
+</p>
+
+## Model performance
+
+Results on a 30% stratified hold-out set (1,908,786 transactions, 2,464 of them fraud):
+
+| Metric | Value | Meaning |
+|---|---|---|
+| **Recall (fraud)** | **93.3%** | Share of real fraud the model catches |
+| **Precision (fraud)** | 2.2% | Share of flagged transactions that are really fraud |
+| Accuracy | 94.6% | Not meaningful on its own: only 0.13% of transactions are fraud |
+
+<details>
+<summary><b>Confusion matrix</b></summary>
+<br>
+
+| | Predicted legitimate | Predicted fraud |
+|---|---:|---:|
+| **Actually legitimate** | 1,803,376 | 102,946 |
+| **Actually fraud** | 165 | 2,299 |
+
+</details>
+
+> [!NOTE]
+> The model uses balanced class weights, so it is tuned to miss as little fraud as possible. That comes at the cost of many false alarms, so a flag means *needs review*, not a final verdict.
+
+### Roadmap
+
+- [ ] Gradient-boosted trees (LightGBM / XGBoost)
+- [ ] Balance-error features, e.g. `oldbalanceOrg - amount - newbalanceOrig`
+- [ ] Decision threshold chosen from the precision–recall curve
+- [ ] Time-based train/test split using the `step` column
+
+## Run it locally
+
+> [!IMPORTANT]
+> Requires **Python 3.12 or newer** (needed by the pinned numpy, pandas and Streamlit versions).
+
+```bash
+git clone https://github.com/chandhim/FraudX.git
+```
+
+```bash
+cd FraudX
+```
+
+<details>
+<summary><b>macOS / Linux</b></summary>
+
 ```bash
 python3 -m venv venv
+```
+
+```bash
 source venv/bin/activate
 ```
 
-Install the dependencies:
+</details>
+
+<details>
+<summary><b>Windows</b></summary>
+
+```bash
+python -m venv venv
+```
+
+```bash
+venv\Scripts\activate
+```
+
+</details>
 
 ```bash
 pip install -r requirements.txt
 ```
 
-That is enough to run the app. To also run the notebook and the tests:
+```bash
+streamlit run fraud_detection.py
+```
+
+The app opens at http://localhost:8501. It uses the committed model, so you don't need the dataset.
+
+<details>
+<summary><b>Retrain the model with the notebook</b></summary>
+<br>
+
+1. Download the dataset from [Kaggle](https://www.kaggle.com/datasets/amanalisiddiqui/fraud-detection-dataset). You may need a Kaggle account.
+2. Rename the CSV to `creditcard.csv` and put it in the project root. CSV files are git-ignored, so it won't be committed by accident.
+3. Install the notebook dependencies:
+
+   ```bash
+   pip install -r requirements-dev.txt
+   ```
+
+4. Open the notebook and run the cells in order from the top:
+
+   ```bash
+   jupyter notebook analysis.ipynb
+   ```
+
+The last cell saves the pipeline to `fraud_detection_model.pkl`, overwriting the committed model. If you retrain with a different scikit-learn version, update the `scikit-learn` pin in `requirements.txt` to match.
+
+</details>
+
+<details>
+<summary><b>Run the tests</b></summary>
+<br>
 
 ```bash
 pip install -r requirements-dev.txt
 ```
 
-## Running the Web App
-
-```bash
-streamlit run fraud_detection.py
-```
-
-The app opens at http://localhost:8501.
-
-- **Try a sample:** one click loads a ready-made transaction (an everyday payment, a cash deposit, or two typical fraud patterns) and scores it.
-- **Or enter your own:** pick the type and amount; the new balances are calculated from the amount unless you switch that off to enter them by hand. Then click **Analyze transaction**.
-- **Result:** the verdict and fraud score, a chart of what drove the score (each input's contribution to the model's log-odds), any data checks, and the balance details.
-- The sidebar explains the dataset, the model and its test-set recall and precision.
-- Light and dark mode: the app follows your system setting; switch from the ⋮ menu at the top right.
-
-The app checks the input before scoring:
-
-- **Errors** (negative values, a zero amount) stop the prediction.
-- **Warnings** (balances that don't add up, a large transfer or cash-out) are shown, but the transaction is still scored. Inconsistent balances are themselves a fraud signal in this data.
-
-## Running the Notebook
-
-```bash
-jupyter notebook analysis.ipynb
-```
-
-Run the cells in order from the top. The notebook loads the dataset, explores it, trains a logistic regression pipeline and saves it as `fraud_detection_model.pkl`, overwriting the committed model.
-
-If you retrain with a different scikit-learn version, update the `scikit-learn` pin in `requirements.txt` to match.
-
-## Running the Tests
-
 ```bash
 pytest
 ```
 
-The tests cover the input validation rules and run the app headlessly to check the samples, analysis and Reset. They also run automatically on GitHub Actions for every push and pull request.
+The suite covers the validation rules and drives the app headlessly with Streamlit's `AppTest`: each sample gives its expected verdict, balances auto-calculate, results go stale when inputs change, Reset clears everything, and a zero amount is blocked.
 
-## Project Structure
+</details>
+
+<details>
+<summary><b>Input checks</b></summary>
+<br>
+
+- **Errors** (negative values, a zero amount) stop the prediction.
+- **Warnings** (balances that don't add up, a transfer or cash-out above 50,000) are shown, but the transaction is still scored. The 50,000 threshold is illustrative, since amounts are simulated units.
+
+</details>
+
+<details>
+<summary><b>Troubleshooting</b></summary>
+<br>
+
+| Problem | Fix |
+|---|---|
+| `pip` can't find `scikit-learn==1.7.2` or `numpy==2.5.4` | Your Python is older than 3.12. Install 3.12+ and recreate the virtual environment. |
+| `ModuleNotFoundError` | Activate the virtual environment and run `pip install -r requirements.txt`. |
+| `InconsistentVersionWarning` when the model loads | Your scikit-learn version differs from the one that saved the model. Reinstall from `requirements.txt`. |
+| Notebook can't find the dataset | The CSV must be named `creditcard.csv` and be in the project root. |
+| Out of memory in the notebook | The dataset has 6.3M rows. Close other applications or use a machine with more RAM. |
+| Port 8501 already in use | Add `--server.port 8502` to the `streamlit run` command. |
+
+</details>
+
+## Project structure
 
 ```
 FraudX/
 ├── fraud_detection.py         # Streamlit app
-├── validation.py              # input validation rules used by the app
+├── validation.py              # input checks used by the app
 ├── icons.py                   # Lucide icons (ISC license) used by the app
 ├── fraud_detection_model.pkl  # trained pipeline (scikit-learn 1.7.2)
-├── analysis.ipynb             # EDA and model training
-├── images/
-│   ├── FraudX.svg             # logo used by the app
-│   └── FraudX.png             # logo (PNG)
+├── analysis.ipynb             # exploratory analysis and model training
+├── images/                    # FraudX logo (SVG and PNG)
+├── docs/images/               # README banner, screenshots and animation
 ├── tests/                     # pytest suite
 ├── requirements.txt           # app dependencies (pinned)
 ├── requirements-dev.txt       # notebook and test dependencies
-├── .github/workflows/         # CI
-├── .streamlit/config.toml     # light and dark themes
-└── creditcard.csv             # dataset (download separately, not committed)
+├── .github/workflows/         # CI: runs the tests on every push
+└── .streamlit/config.toml     # light and dark themes
 ```
 
-## Troubleshooting
+## Built with
 
-**`ModuleNotFoundError`**
-Make sure your virtual environment is active and you installed `requirements.txt` (or `requirements-dev.txt` for the notebook).
-
-**`InconsistentVersionWarning` when the app loads the model**
-Your scikit-learn version differs from the one that saved the model. Run `pip install -r requirements.txt` to get the pinned version.
-
-**Notebook can't find the dataset**
-Check that the CSV is named `creditcard.csv` and is in the project root.
-
-**Out of memory in the notebook**
-The dataset is large (6.3M rows). Close other applications or use a machine with more RAM.
+Python · pandas · NumPy · scikit-learn · Streamlit · Plotly · Matplotlib · Seaborn · pytest · GitHub Actions
 
 ## Notes
 
 - The model was trained with scikit-learn 1.7.2. Loading it with another version may warn or give wrong results.
 - Only load `.pkl` model files you trust: unpickling can run arbitrary code.
-- Amounts are simulated units, so the 50,000 high-risk threshold in the data checks is illustrative only.
-- The current model flags most real frauds but also many legitimate transactions (low precision), so treat a FRAUDULENT result as "needs review", not a final verdict.
 
-## License
+## License and acknowledgments
 
-The dataset is subject to its own terms on Kaggle; see the dataset page.
-
-## Acknowledgments
-
-- Dataset: [Fraud Detection Dataset on Kaggle](https://www.kaggle.com/datasets/amanalisiddiqui/fraud-detection-dataset)
+- Dataset: [Fraud Detection Dataset on Kaggle](https://www.kaggle.com/datasets/amanalisiddiqui/fraud-detection-dataset), subject to its own terms.
+- Icons: [Lucide](https://lucide.dev), ISC License.
