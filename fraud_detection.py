@@ -225,6 +225,7 @@ st.markdown(
         display: flex; align-items: center; gap: 1.75rem; flex-wrap: wrap;
         background: linear-gradient(135deg, #0b1220 0%, #1e293b 100%);
         border-radius: 16px; padding: 1.25rem 1.75rem; margin-bottom: 1.25rem;
+        border: 1px solid rgba(148, 163, 184, .25);
       }}
       .fx-logo {{ flex: none; max-width: 100%; }}
       .fx-hero-title {{ color: #fff; font-size: 1.65rem; font-weight: 700; line-height: 1.2; }}
@@ -297,6 +298,7 @@ with st.sidebar:
         f'<a class="fx-link" href="{REPO_URL}" target="_blank">{icon("github", 16)} Source code on GitHub</a>',
         unsafe_allow_html=True,
     )
+    st.caption("Switch between light and dark mode from the ⋮ menu at the top right.")
 # ===========================================================
 
 # ==================== HEADER ====================

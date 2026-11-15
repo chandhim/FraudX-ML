@@ -74,6 +74,7 @@ The app opens at http://localhost:8501.
 - **Or enter your own:** pick the type and amount; the new balances are calculated from the amount unless you switch that off to enter them by hand. Then click **Analyze transaction**.
 - **Result:** the verdict and fraud score, a chart of what drove the score (each input's contribution to the model's log-odds), any data checks, and the balance details.
 - The sidebar explains the dataset, the model and its test-set recall and precision.
+- Light and dark mode: the app follows your system setting; switch from the ⋮ menu at the top right.
 
 The app checks the input before scoring:
 
@@ -114,7 +115,7 @@ FraudX/
 ├── requirements.txt           # app dependencies (pinned)
 ├── requirements-dev.txt       # notebook and test dependencies
 ├── .github/workflows/         # CI
-├── .streamlit/config.toml     # app theme
+├── .streamlit/config.toml     # light and dark themes
 └── creditcard.csv             # dataset (download separately, not committed)
 ```
 

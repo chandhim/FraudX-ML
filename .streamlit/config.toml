@@ -1,6 +1,12 @@
-[theme]
+# Light and dark themes: the app follows the visitor's system setting, and
+# visitors can switch with the menu (⋮ → Settings → Theme).
+[theme.light]
 primaryColor = "#e53935"
 
+[theme.dark]
+primaryColor = "#ef5350"
+
 [client]
-# Hide the developer toolbar (Deploy button etc.) for a cleaner look
-toolbarMode = "minimal"
+# Keep the menu (for the theme switcher) but hide developer options
+# such as the Deploy and Rerun buttons.
+toolbarMode = "viewer"
