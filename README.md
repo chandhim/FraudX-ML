@@ -30,7 +30,7 @@ The dataset is only needed to run the notebook. The web app uses the committed m
 
 ## Prerequisites
 
-- Python 3.10 or newer (required by scikit-learn 1.7)
+- Python 3.12 or newer (required by the pinned numpy, pandas and Streamlit versions)
 - pip
 - Git (optional, for cloning the repository)
 
