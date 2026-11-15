@@ -2,5 +2,5 @@
 primaryColor = "#e53935"
 
 [client]
-# Hide the developer toolbar (Deploy button etc.) for a cleaner demo
+# Hide the developer toolbar (Deploy button etc.) for a cleaner look
 toolbarMode = "minimal"

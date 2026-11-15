@@ -7,6 +7,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+from icons import icon
 from validation import validate_transaction
 
 # ==================== PATHS & CONSTANTS ====================
@@ -57,22 +58,26 @@ RESET_VALUES = {
 # give the model's verdict so the labels stay honest.
 PRESETS = {
     "everyday_payment": {
-        "label": "🛒 Everyday payment",
+        "label": "Everyday payment",
+        "icon": ":material/shopping_cart:",
         "help": "A shopper pays a merchant 4,500 from a 32,000 balance.",
         "values": ("PAYMENT", 4500.0, 32000.0, 27500.0, 0.0, 0.0),  # legitimate
     },
     "cash_deposit": {
-        "label": "💰 Cash deposit",
+        "label": "Cash deposit",
+        "icon": ":material/savings:",
         "help": "A customer deposits 20,000 in cash at an agent.",
         "values": ("CASH_IN", 20000.0, 5000.0, 25000.0, 60000.0, 40000.0),  # legitimate
     },
     "drained_transfer": {
-        "label": "🚨 Account drained",
+        "label": "Account drained",
+        "icon": ":material/money_off:",
         "help": "The full 181,000 balance is transferred out, leaving the account empty.",
         "values": ("TRANSFER", 181000.0, 181000.0, 0.0, 0.0, 0.0),  # fraud
     },
     "drain_and_cash_out": {
-        "label": "🚨 Drain & cash out",
+        "label": "Drain & cash out",
+        "icon": ":material/local_atm:",
         "help": "An entire 350,000 balance is cashed out in one go.",
         "values": ("CASH_OUT", 350000.0, 350000.0, 0.0, 12000.0, 362000.0),  # fraud
     },
@@ -85,12 +90,13 @@ FEATURE_GROUPS = {
     "Receiver balances": lambda name: name in ("num__oldbalanceDest", "num__newbalanceDest"),
 }
 
+ACCENT = "#e53935"
 FRAUD_RED = "#d32f2f"
 LEGIT_GREEN = "#2e7d32"
 # ===========================================================
 
 st.set_page_config(
-    page_title="FraudX · Fraud Detection Demo",
+    page_title="FraudX · Fraud Detection",
     page_icon=str(LOGO_PATH),
     layout="wide",
 )
@@ -107,10 +113,19 @@ def load_logo_svg(path, viewbox, height):
     svg = re.sub(r'viewBox="[^"]*"', f'viewBox="{viewbox}"', svg, count=1)
     svg = re.sub(r'\swidth="[^"]*"', "", svg, count=1)
     svg = re.sub(r'\sheight="[^"]*"', f' height="{height}"', svg, count=1)
+    svg = svg.replace("<svg ", '<svg class="fx-logo" ', 1)
     return svg
 
 
 model = load_model(MODEL_PATH)
+
+
+def heading(icon_name, text, size=""):
+    """Section heading with a Lucide icon."""
+    st.markdown(
+        f'<div class="fx-heading {size}">{icon(icon_name)}<span>{text}</span></div>',
+        unsafe_allow_html=True,
+    )
 
 for key, value in DEFAULTS.items():
     st.session_state.setdefault(key, value)
@@ -211,7 +226,7 @@ st.markdown(
         background: linear-gradient(135deg, #0b1220 0%, #1e293b 100%);
         border-radius: 16px; padding: 1.25rem 1.75rem; margin-bottom: 1.25rem;
       }}
-      .fx-hero svg {{ flex: none; max-width: 100%; }}
+      .fx-logo {{ flex: none; max-width: 100%; }}
       .fx-hero-title {{ color: #fff; font-size: 1.65rem; font-weight: 700; line-height: 1.2; }}
       .fx-hero-sub {{ color: #cbd5e1; margin-top: .25rem; }}
       .fx-badges {{ margin-top: .6rem; display: flex; gap: .4rem; flex-wrap: wrap; }}
@@ -227,6 +242,16 @@ st.markdown(
       .fx-verdict-score {{ display: flex; align-items: baseline; gap: .6rem; margin-top: .4rem; }}
       .fx-verdict-score b {{ font-size: 2.4rem; font-weight: 800; line-height: 1; }}
       .fx-verdict-score span {{ opacity: .9; }}
+      .fx-verdict-head {{ display: flex; align-items: center; gap: .5rem; }}
+      .fx-heading {{
+        display: flex; align-items: center; gap: .55rem;
+        font-size: 1.25rem; font-weight: 600; margin: .4rem 0 .6rem;
+      }}
+      .fx-heading.sm {{ font-size: 1rem; margin: .9rem 0 .4rem; }}
+      .fx-heading.xs {{ font-size: .95rem; margin: .1rem 0 .35rem; }}
+      .fx-heading .fx-icon {{ color: {ACCENT}; flex: none; }}
+      .fx-badges span {{ display: inline-flex; align-items: center; gap: .35rem; }}
+      .fx-link {{ display: inline-flex; align-items: center; gap: .4rem; }}
     </style>
     """,
     unsafe_allow_html=True,
@@ -235,14 +260,14 @@ st.markdown(
 
 # ==================== SIDEBAR: ABOUT THE PROJECT ====================
 with st.sidebar:
-    st.markdown("## About FraudX")
+    heading("info", "About FraudX")
     st.markdown(
         "An end-to-end machine learning project: exploratory analysis, a "
         "trained classifier, and this interactive app for scoring "
         "mobile-money transactions."
     )
 
-    st.markdown("#### How it works")
+    heading("workflow", "How it works", "sm")
     st.markdown(
         "- **Data:** PaySim, 6.36M simulated mobile-money transactions, 0.13% fraud\n"
         "- **Features:** transaction type, amount, sender and receiver balances before and after\n"
@@ -250,7 +275,7 @@ with st.sidebar:
         "logistic regression with balanced class weights"
     )
 
-    st.markdown("#### Test-set results")
+    heading("flask-conical", "Test-set results", "sm")
     c1, c2 = st.columns(2)
     c1.metric("Recall", f"{MODEL_RECALL:.0%}", help="Share of real fraud the model catches.")
     c2.metric("Precision", f"{MODEL_PRECISION:.0%}", help="Share of flagged transactions that are really fraud.")
@@ -259,7 +284,7 @@ with st.sidebar:
         "A flag means *needs review*, not a final verdict."
     )
 
-    st.markdown("#### Next steps")
+    heading("rocket", "Next steps", "sm")
     st.markdown(
         "- Gradient-boosted trees\n"
         "- Balance-error features\n"
@@ -267,7 +292,11 @@ with st.sidebar:
     )
 
     st.divider()
-    st.markdown(f"**Built with** Python · scikit-learn · pandas · Streamlit · Plotly  \n[Source code on GitHub]({REPO_URL})")
+    st.markdown("**Built with** Python · scikit-learn · pandas · Streamlit · Plotly")
+    st.markdown(
+        f'<a class="fx-link" href="{REPO_URL}" target="_blank">{icon("github", 16)} Source code on GitHub</a>',
+        unsafe_allow_html=True,
+    )
 # ===========================================================
 
 # ==================== HEADER ====================
@@ -278,7 +307,7 @@ st.markdown(
       <div>
         <div class="fx-hero-title">Transaction Fraud Detection</div>
         <div class="fx-hero-sub">Score a mobile-money transaction with a machine learning model and see why it was flagged.</div>
-        <div class="fx-badges"><span>6.36M transactions</span><span>Logistic regression</span><span>{MODEL_RECALL:.0%} fraud recall</span></div>
+        <div class="fx-badges"><span>{icon("database", 14)}6.36M transactions</span><span>{icon("brain-circuit", 14)}Logistic regression</span><span>{icon("target", 14)}{MODEL_RECALL:.0%} fraud recall</span></div>
       </div>
     </div>
     """,
@@ -290,16 +319,16 @@ form_col, result_col = st.columns([1.1, 1], gap="large")
 
 # ==================== LEFT: INPUT ====================
 with form_col:
-    st.markdown("#### 1 · Try a sample transaction")
+    heading("mouse-pointer-click", "Try a sample transaction")
     preset_items = list(PRESETS.items())
     for row_start in range(0, len(preset_items), 2):  # row by row, so phones keep the order
         for col, (preset_id, preset) in zip(st.columns(2), preset_items[row_start:row_start + 2]):
             col.button(
-                preset["label"], key=f"preset_{preset_id}", help=preset["help"],
+                preset["label"], icon=preset["icon"], key=f"preset_{preset_id}", help=preset["help"],
                 on_click=load_preset, args=(preset_id,), width="stretch",
             )
 
-    st.markdown("#### 2 · Or enter your own")
+    heading("square-pen", "Or enter your own")
     with st.container(border=True):
         c1, c2 = st.columns(2)
         transaction_type = c1.selectbox("Transaction type", TRANSACTION_TYPES, key="transaction_type", help=TYPE_HELP)
@@ -310,10 +339,10 @@ with form_col:
             help="Turn off to enter balances by hand, e.g. to test records that don't add up.",
         )
 
-        st.markdown("**Sender account**")
+        heading("wallet", "Sender account", "xs")
         c1, c2 = st.columns(2)
         old_orig = c1.number_input("Balance before", min_value=0.0, step=100.0, format="%.2f", key="oldbalanceOrg")
-        st.markdown("**Receiver account**")
+        heading("user", "Receiver account", "xs")
         d1, d2 = st.columns(2)
         old_dest = d1.number_input("Balance before", min_value=0.0, step=100.0, format="%.2f", key="oldBalanceDest")
 
@@ -326,31 +355,32 @@ with form_col:
         d2.number_input("Balance after", min_value=0.0, step=100.0, format="%.2f", key="newBalanceDest", disabled=auto)
 
     b1, b2 = st.columns([3, 1])
-    b1.button("Analyze transaction", type="primary", on_click=analyze_current, width="stretch")
-    b2.button("Reset", on_click=reset_inputs, width="stretch")
+    b1.button("Analyze transaction", icon=":material/search:", type="primary", on_click=analyze_current, width="stretch")
+    b2.button("Reset", icon=":material/restart_alt:", on_click=reset_inputs, width="stretch")
 # ===========================================================
 
 # ==================== RIGHT: RESULT ====================
 with result_col:
-    st.markdown("#### Result")
+    heading("activity", "Result")
     current_inputs = tuple(st.session_state[k] for k in INPUT_KEYS)
     result = st.session_state.result
 
     if result is None:
-        st.info("Pick a sample transaction, or enter your own and click **Analyze transaction**.", icon="👈")
+        st.info("Pick a sample transaction, or enter your own and click **Analyze transaction**.", icon=":material/touch_app:")
     elif result["inputs"] != current_inputs:
-        st.info("The inputs have changed. Click **Analyze transaction** to update the result.", icon="🔄")
+        st.info("The inputs have changed. Click **Analyze transaction** to update the result.", icon=":material/refresh:")
     elif result["errors"]:
         for error in result["errors"]:
-            st.error(error, icon="❌")
+            st.error(error, icon=":material/error:")
     else:
         prob = result["fraud_prob"]
         kind = "fraud" if result["is_fraud"] else "legit"
         verdict = "Likely fraud" if result["is_fraud"] else "Looks legitimate"
+        verdict_icon = "shield-alert" if result["is_fraud"] else "shield-check"
         st.markdown(
             f"""
             <div class="fx-verdict {kind}">
-              <div class="fx-verdict-label">Model verdict</div>
+              <div class="fx-verdict-head">{icon(verdict_icon, 20)}<span class="fx-verdict-label">Model verdict</span></div>
               <div class="fx-verdict-main">{verdict}</div>
               <div class="fx-verdict-score"><b>{prob:.0%}</b><span>fraud score · {risk_level(prob)}</span></div>
             </div>
@@ -358,7 +388,7 @@ with result_col:
             unsafe_allow_html=True,
         )
 
-        st.markdown("**What drove this score**")
+        heading("chart-column", "What drove this score", "xs")
         drivers = sorted(result["drivers"].items(), key=lambda kv: abs(kv[1]))
         fig = go.Figure(go.Bar(
             x=[v for _, v in drivers],
@@ -379,9 +409,9 @@ with result_col:
 
         if result["warnings"]:
             with st.container(border=True):
-                st.markdown("**Data checks**")
+                heading("list-checks", "Data checks", "xs")
                 for warning in result["warnings"]:
-                    st.warning(warning, icon="⚠️")
+                    st.warning(warning, icon=":material/warning:")
 
         tx_type, amt, o_old, o_new, d_old, d_new = result["inputs"]
         with st.expander("Transaction details"):
@@ -399,7 +429,7 @@ with result_col:
             st.caption(f"{tx_type} of {amt:,.2f}. Amounts are simulated units from the PaySim dataset.")
 
         st.caption(
-            f"Demo model: catches {MODEL_RECALL:.0%} of fraud on the test set, but only "
+            f"Model note: catches {MODEL_RECALL:.0%} of fraud on the test set, but only "
             f"{MODEL_PRECISION:.0%} of its flags are real fraud. See the sidebar for details."
         )
 # ===========================================================

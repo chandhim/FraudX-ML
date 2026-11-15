@@ -104,6 +104,7 @@ The tests cover the input validation rules and run the app headlessly to check t
 FraudX/
 ├── fraud_detection.py         # Streamlit app
 ├── validation.py              # input validation rules used by the app
+├── icons.py                   # Lucide icons (ISC license) used by the app
 ├── fraud_detection_model.pkl  # trained pipeline (scikit-learn 1.7.2)
 ├── analysis.ipynb             # EDA and model training
 ├── images/
