@@ -96,7 +96,7 @@ If you retrain with a different scikit-learn version, update the `scikit-learn` 
 pytest
 ```
 
-The tests cover the input validation rules and run the app headlessly to check that Predict and Reset work. They also run automatically on GitHub Actions for every push and pull request.
+The tests cover the input validation rules and run the app headlessly to check the samples, analysis and Reset. They also run automatically on GitHub Actions for every push and pull request.
 
 ## Project Structure
 
