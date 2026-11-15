@@ -1,0 +1,6 @@
+# Notebook and test dependencies (includes the app's runtime dependencies).
+-r requirements.txt
+matplotlib
+seaborn
+jupyter
+pytest

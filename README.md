@@ -1,33 +1,42 @@
-# ML Fraud Detection Project
+# FraudX: ML Fraud Detection
 
-A machine learning project for detecting fraudulent transactions using classification algorithms.
+FraudX detects fraudulent mobile-money transactions with a machine learning model. It has two parts:
+
+- **`analysis.ipynb`**: exploratory data analysis and model training. Saves the trained pipeline to `fraud_detection_model.pkl`.
+- **`fraud_detection.py`**: a Streamlit web app that scores a single transaction with the saved model and shows the result, risk level and money flow.
 
 ## Table of Contents
-- [Overview](#overview)
+- [Dataset](#dataset)
 - [Prerequisites](#prerequisites)
-- [Environment Setup](#environment-setup)
-- [Dataset Download](#dataset-download)
-- [Installation](#installation)
-- [Running the Project](#running-the-project)
+- [Setup](#setup)
+- [Running the Web App](#running-the-web-app)
+- [Running the Notebook](#running-the-notebook)
+- [Running the Tests](#running-the-tests)
 - [Project Structure](#project-structure)
+- [Troubleshooting](#troubleshooting)
+- [Notes](#notes)
 
-## Overview
+## Dataset
 
-This project implements machine learning models to detect fraudulent credit card transactions. The analysis is performed using Python and popular data science libraries in a Jupyter notebook environment.
+The data is the **PaySim** simulated mobile-money dataset from Kaggle: about 6.3 million transactions, of which 0.13% are fraudulent. It is synthetic, so amounts are simulated units rather than a real currency.
+
+- **Link:** [Fraud Detection Dataset on Kaggle](https://www.kaggle.com/datasets/amanalisiddiqui/fraud-detection-dataset)
+
+The dataset is only needed to run the notebook. The web app uses the committed model and works without it.
+
+1. Download the dataset (you may need a Kaggle account and to accept the dataset terms).
+2. Rename the CSV file to `creditcard.csv`. The notebook reads it under that name.
+3. Put it in the project root. CSV files are git-ignored, so it won't be committed by accident.
 
 ## Prerequisites
 
-Before you begin, ensure you have the following installed on your system:
-- Python 3.8 or higher
-- pip (Python package manager)
-- Jupyter Notebook or JupyterLab
+- Python 3.10 or newer (required by scikit-learn 1.7)
+- pip
 - Git (optional, for cloning the repository)
 
-## Environment Setup
+## Setup
 
-### Step 1: Create a Virtual Environment
-
-It's recommended to use a virtual environment to manage dependencies:
+Create and activate a virtual environment:
 
 **Windows:**
 ```bash
@@ -41,116 +50,92 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
-### Step 2: Upgrade pip
-
-```bash
-python -m pip install --upgrade pip
-```
-
-## Dataset Download
-
-1. Download the fraud detection dataset from Kaggle:
-   - **Dataset Link:** [Fraud Detection Dataset](https://www.kaggle.com/datasets/amanalisiddiqui/fraud-detection-dataset?resource=download)
-   
-2. You may need to:
-   - Create a Kaggle account if you don't have one
-   - Accept the dataset terms and conditions
-   
-3. After downloading, place the `creditcard.csv` file in the project root directory:
-   ```
-   ML-fraud-detection/
-   ├── creditcard.csv  <- Place the dataset here
-   ├── analysis.ipynb
-   └── README.md
-   ```
-
-## Installation
-
-Install all required dependencies using pip:
-
-```bash
-pip install pandas numpy matplotlib seaborn scikit-learn jupyter notebook
-```
-
-### Required Libraries
-
-The project uses the following Python libraries:
-- **pandas**: Data manipulation and analysis
-- **numpy**: Numerical computing
-- **matplotlib**: Data visualization
-- **seaborn**: Statistical data visualization
-- **scikit-learn**: Machine learning algorithms and tools
-- **jupyter**: Interactive notebook environment
-- **notebook**: Jupyter notebook interface
-
-### Optional: Using requirements.txt
-
-If a `requirements.txt` file is provided, you can install all dependencies at once:
+Install the dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Running the Project
-
-### Step 1: Launch Jupyter Notebook
-
-Make sure your virtual environment is activated, then start Jupyter Notebook:
+That is enough to run the app. To also run the notebook and the tests:
 
 ```bash
-jupyter notebook
+pip install -r requirements-dev.txt
 ```
 
-This will open Jupyter in your default web browser.
+## Running the Web App
 
-### Step 2: Open the Analysis Notebook
+```bash
+streamlit run fraud_detection.py
+```
 
-1. In the Jupyter interface, navigate to the project directory
-2. Click on `analysis.ipynb` to open the notebook
-3. Run the cells sequentially by pressing `Shift + Enter` or using the "Run" button
+The app opens at http://localhost:8501. Enter the transaction type, amount and the balances before and after, then click **Predict**. **Reset** clears the form.
 
-### Step 3: Execute the Analysis
+The app checks the input before scoring:
 
-- Start from the first cell and run each cell in order
-- The notebook will load the dataset, perform exploratory data analysis, and train machine learning models
-- Review the outputs, visualizations, and model performance metrics
+- **Errors** (negative values, a zero amount) stop the prediction.
+- **Warnings** (balances that don't add up, a large transfer or cash-out) are shown, but the transaction is still scored. Inconsistent balances are themselves a fraud signal in this data.
+
+## Running the Notebook
+
+```bash
+jupyter notebook analysis.ipynb
+```
+
+Run the cells in order from the top. The notebook loads the dataset, explores it, trains a logistic regression pipeline and saves it as `fraud_detection_model.pkl`, overwriting the committed model.
+
+If you retrain with a different scikit-learn version, update the `scikit-learn` pin in `requirements.txt` to match.
+
+## Running the Tests
+
+```bash
+pytest
+```
+
+The tests cover the input validation rules and run the app headlessly to check that Predict and Reset work. They also run automatically on GitHub Actions for every push and pull request.
 
 ## Project Structure
 
 ```
-ML-fraud-detection/
-├── analysis.ipynb      # Main Jupyter notebook with ML analysis
-├── creditcard.csv      # Dataset (download separately)
-├── .gitignore         # Git ignore file
-└── README.md          # This file
+FraudX/
+├── fraud_detection.py         # Streamlit app
+├── validation.py              # input validation rules used by the app
+├── fraud_detection_model.pkl  # trained pipeline (scikit-learn 1.7.2)
+├── analysis.ipynb             # EDA and model training
+├── images/
+│   ├── FraudX.svg             # logo used by the app
+│   └── FraudX.png             # logo (PNG)
+├── tests/                     # pytest suite
+├── requirements.txt           # app dependencies (pinned)
+├── requirements-dev.txt       # notebook and test dependencies
+├── .github/workflows/         # CI
+└── creditcard.csv             # dataset (download separately, not committed)
 ```
 
 ## Troubleshooting
 
-### Common Issues
+**`ModuleNotFoundError`**
+Make sure your virtual environment is active and you installed `requirements.txt` (or `requirements-dev.txt` for the notebook).
 
-**Issue: Module not found error**
-- Solution: Ensure all dependencies are installed in your active virtual environment
+**`InconsistentVersionWarning` when the app loads the model**
+Your scikit-learn version differs from the one that saved the model. Run `pip install -r requirements.txt` to get the pinned version.
 
-**Issue: Dataset not found**
-- Solution: Verify that `creditcard.csv` is in the project root directory
+**Notebook can't find the dataset**
+Check that the CSV is named `creditcard.csv` and is in the project root.
 
-**Issue: Jupyter notebook won't start**
-- Solution: Try reinstalling Jupyter: `pip install --upgrade jupyter notebook`
-
-**Issue: Out of memory errors**
-- Solution: Close other applications or consider using a machine with more RAM
+**Out of memory in the notebook**
+The dataset is large (6.3M rows). Close other applications or use a machine with more RAM.
 
 ## Notes
 
-- Make sure to activate your virtual environment every time you work on the project
-- The dataset file (`creditcard.csv`) is typically large and should not be committed to version control
-- Results may vary depending on the random state and model parameters used
+- The model was trained with scikit-learn 1.7.2. Loading it with another version may warn or give wrong results.
+- Only load `.pkl` model files you trust: unpickling can run arbitrary code.
+- The "LKR" labels and the 50,000 high-risk threshold in the app are for display only, since the data's amounts are simulated.
+- The current model flags most real frauds but also many legitimate transactions (low precision), so treat a FRAUDULENT result as "needs review", not a final verdict.
 
 ## License
 
-Please refer to the dataset license on Kaggle for usage terms and conditions.
+The dataset is subject to its own terms on Kaggle; see the dataset page.
 
 ## Acknowledgments
 
-- Dataset provided by: [Fraud Detection Dataset on Kaggle](https://www.kaggle.com/datasets/amanalisiddiqui/fraud-detection-dataset)
+- Dataset: [Fraud Detection Dataset on Kaggle](https://www.kaggle.com/datasets/amanalisiddiqui/fraud-detection-dataset)
