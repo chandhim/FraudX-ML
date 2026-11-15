@@ -68,7 +68,12 @@ pip install -r requirements-dev.txt
 streamlit run fraud_detection.py
 ```
 
-The app opens at http://localhost:8501. Enter the transaction type, amount and the balances before and after, then click **Predict**. **Reset** clears the form.
+The app opens at http://localhost:8501.
+
+- **Try a sample:** one click loads a ready-made transaction (an everyday payment, a cash deposit, or two typical fraud patterns) and scores it.
+- **Or enter your own:** pick the type and amount; the new balances are calculated from the amount unless you switch that off to enter them by hand. Then click **Analyze transaction**.
+- **Result:** the verdict and fraud score, a chart of what drove the score (each input's contribution to the model's log-odds), any data checks, and the balance details.
+- The sidebar explains the dataset, the model and its test-set recall and precision.
 
 The app checks the input before scoring:
 
@@ -108,6 +113,7 @@ FraudX/
 ├── requirements.txt           # app dependencies (pinned)
 ├── requirements-dev.txt       # notebook and test dependencies
 ├── .github/workflows/         # CI
+├── .streamlit/config.toml     # app theme
 └── creditcard.csv             # dataset (download separately, not committed)
 ```
 
@@ -129,7 +135,7 @@ The dataset is large (6.3M rows). Close other applications or use a machine with
 
 - The model was trained with scikit-learn 1.7.2. Loading it with another version may warn or give wrong results.
 - Only load `.pkl` model files you trust: unpickling can run arbitrary code.
-- The "LKR" labels and the 50,000 high-risk threshold in the app are for display only, since the data's amounts are simulated.
+- Amounts are simulated units, so the 50,000 high-risk threshold in the data checks is illustrative only.
 - The current model flags most real frauds but also many legitimate transactions (low precision), so treat a FRAUDULENT result as "needs review", not a final verdict.
 
 ## License

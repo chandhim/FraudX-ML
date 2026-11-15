@@ -49,6 +49,6 @@ def validate_transaction(transaction_type, amount, oldbalanceOrg, newBalanceOrig
         warnings.append("Destination was credited but the origin account was not debited.")
 
     if transaction_type in ("TRANSFER", "CASH_OUT") and amount > 50_000:
-        warnings.append(f"High-risk transaction: {transaction_type} of LKR {amount:,.2f}.")
+        warnings.append(f"High-risk transaction: {transaction_type} of {amount:,.2f}.")
 
     return errors, warnings
