@@ -10,34 +10,51 @@ def new_app():
     return AppTest.from_file(APP, default_timeout=60).run()
 
 
-def click(at, label=None, key=None):
-    button = at.button(key) if key else next(b for b in at.button if b.label == label)
-    button.click().run()
+def click(at, label):
+    next(b for b in at.button if b.label == label).click().run()
 
 
 def verdict_html(at):
     return " ".join(m.value for m in at.markdown if "fx-verdict" in m.value and "<div" in m.value)
 
 
+def enter(at, transaction_type, amount, old_orig, new_orig, old_dest, new_dest):
+    """Fill the form by hand, with the new balances typed in rather than auto-calculated."""
+    at.toggle(key="auto_balances").set_value(False).run()
+    at.selectbox(key="transaction_type").set_value(transaction_type)
+    for key, value in zip(
+        ["amount", "oldbalanceOrg", "newBalanceOrig", "oldBalanceDest", "newBalanceDest"],
+        [amount, old_orig, new_orig, old_dest, new_dest],
+    ):
+        at.number_input(key=key).set_value(value)
+    at.run()
+
+
 def test_app_loads_without_errors():
     at = new_app()
     assert not at.exception
     assert not at.warning
-    assert "Pick a sample transaction" in at.info[0].value
+    assert "Enter a transaction" in at.info[0].value
+
+
+def test_no_sample_buttons():
+    at = new_app()
+    assert [b.label for b in at.button] == ["Analyze transaction", "Reset"]
 
 
 @pytest.mark.parametrize(
-    "preset, expected",
+    "transaction, expected",
     [
-        ("everyday_payment", "Looks legitimate"),
-        ("cash_deposit", "Looks legitimate"),
-        ("drained_transfer", "Likely fraud"),
-        ("drain_and_cash_out", "Likely fraud"),
+        (("PAYMENT", 4500.0, 32000.0, 27500.0, 0.0, 0.0), "Looks legitimate"),
+        (("CASH_IN", 20000.0, 5000.0, 25000.0, 60000.0, 40000.0), "Looks legitimate"),
+        (("TRANSFER", 181000.0, 181000.0, 0.0, 0.0, 0.0), "Likely fraud"),
+        (("CASH_OUT", 350000.0, 350000.0, 0.0, 12000.0, 362000.0), "Likely fraud"),
     ],
 )
-def test_presets_load_and_show_expected_verdict(preset, expected):
+def test_entered_transactions_show_expected_verdict(transaction, expected):
     at = new_app()
-    click(at, key=f"preset_{preset}")
+    enter(at, *transaction)
+    click(at, "Analyze transaction")
     assert not at.exception
     assert expected in verdict_html(at)
 
@@ -63,7 +80,9 @@ def test_analyze_then_edit_marks_result_stale():
 
 def test_reset_clears_inputs_and_results():
     at = new_app()
-    click(at, key="preset_drained_transfer")
+    enter(at, "TRANSFER", 181000.0, 181000.0, 0.0, 0.0, 0.0)
+    click(at, "Analyze transaction")
+    assert "Likely fraud" in verdict_html(at)
     click(at, "Reset")
     assert not at.exception
     assert at.number_input(key="amount").value == 0.0
