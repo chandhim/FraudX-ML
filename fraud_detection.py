@@ -54,35 +54,6 @@ RESET_VALUES = {
     "result": None,
 }
 
-# One-click samples. Values are realistic for the PaySim data; the comments
-# give the model's verdict so the labels stay honest.
-PRESETS = {
-    "everyday_payment": {
-        "label": "Everyday payment",
-        "icon": ":material/shopping_cart:",
-        "help": "A shopper pays a merchant 4,500 from a 32,000 balance.",
-        "values": ("PAYMENT", 4500.0, 32000.0, 27500.0, 0.0, 0.0),  # legitimate
-    },
-    "cash_deposit": {
-        "label": "Cash deposit",
-        "icon": ":material/savings:",
-        "help": "A customer deposits 20,000 in cash at an agent.",
-        "values": ("CASH_IN", 20000.0, 5000.0, 25000.0, 60000.0, 40000.0),  # legitimate
-    },
-    "drained_transfer": {
-        "label": "Account drained",
-        "icon": ":material/money_off:",
-        "help": "The full 181,000 balance is transferred out, leaving the account empty.",
-        "values": ("TRANSFER", 181000.0, 181000.0, 0.0, 0.0, 0.0),  # fraud
-    },
-    "drain_and_cash_out": {
-        "label": "Drain & cash out",
-        "icon": ":material/local_atm:",
-        "help": "An entire 350,000 balance is cashed out in one go.",
-        "values": ("CASH_OUT", 350000.0, 350000.0, 0.0, 12000.0, 362000.0),  # fraud
-    },
-}
-
 FEATURE_GROUPS = {
     "Transaction type": lambda name: name.startswith("cat__type_"),
     "Amount": lambda name: name == "num__amount",
@@ -134,14 +105,6 @@ for key, value in DEFAULTS.items():
 # ==================== CALLBACKS ====================
 # Callbacks run before widgets are re-created, the only point where
 # widget-backed session state may be changed.
-def load_preset(preset_id):
-    values = PRESETS[preset_id]["values"]
-    for key, value in zip(INPUT_KEYS, values):
-        st.session_state[key] = value
-    st.session_state.auto_balances = False  # keep the sample's exact balances
-    st.session_state.result = analyze(*values)
-
-
 def reset_inputs():
     for key, value in RESET_VALUES.items():
         st.session_state[key] = value
@@ -321,16 +284,7 @@ form_col, result_col = st.columns([1.1, 1], gap="large")
 
 # ==================== LEFT: INPUT ====================
 with form_col:
-    heading("mouse-pointer-click", "Try a sample transaction")
-    preset_items = list(PRESETS.items())
-    for row_start in range(0, len(preset_items), 2):  # row by row, so phones keep the order
-        for col, (preset_id, preset) in zip(st.columns(2), preset_items[row_start:row_start + 2]):
-            col.button(
-                preset["label"], icon=preset["icon"], key=f"preset_{preset_id}", help=preset["help"],
-                on_click=load_preset, args=(preset_id,), width="stretch",
-            )
-
-    heading("square-pen", "Or enter your own")
+    heading("square-pen", "Enter a transaction")
     with st.container(border=True):
         c1, c2 = st.columns(2)
         transaction_type = c1.selectbox("Transaction type", TRANSACTION_TYPES, key="transaction_type", help=TYPE_HELP)
@@ -368,7 +322,7 @@ with result_col:
     result = st.session_state.result
 
     if result is None:
-        st.info("Pick a sample transaction, or enter your own and click **Analyze transaction**.", icon=":material/touch_app:")
+        st.info("Enter a transaction and click **Analyze transaction**.", icon=":material/touch_app:")
     elif result["inputs"] != current_inputs:
         st.info("The inputs have changed. Click **Analyze transaction** to update the result.", icon=":material/refresh:")
     elif result["errors"]:

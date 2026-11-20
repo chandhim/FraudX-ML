@@ -20,14 +20,14 @@
 </p>
 
 <p align="center">
-  <img src="docs/images/app.gif" alt="Scoring the sample transactions in FraudX" width="90%">
+  <img src="docs/images/app.gif" alt="Scoring a legitimate payment and a fraudulent transfer in FraudX" width="90%">
 </p>
 
 ## Highlights
 
 | | |
 |---|---|
-| **One-click samples** | Everyday payment, cash deposit, and two typical fraud patterns, each loaded and scored instantly |
+| **Simple input** | Enter a transaction type, amount and balances; new balances can be calculated from the amount automatically |
 | **Explainable verdicts** | A chart of what pushed the score towards fraud or legitimate, taken directly from the model's weights |
 | **Data checks** | Balances that don't add up are flagged, but still scored, because in this data they are a fraud signal |
 | **Light and dark mode** | Follows the visitor's system theme, with a switcher in the menu |
@@ -42,7 +42,7 @@ flowchart LR
     C --> D["Pipeline<br/>StandardScaler + OneHotEncoder<br/>+ LogisticRegression"]
     D --> E[/"fraud_detection_model.pkl"/]
     E --> F["Streamlit app<br/>fraud_detection.py"]
-    G["Visitor input<br/>or a sample"] --> H{"validation.py<br/>data checks"}
+    G["Visitor input"] --> H{"validation.py<br/>data checks"}
     H -- "errors" --> I["Shown, not scored"]
     H -- "ok or warnings" --> F
     F --> J["Verdict, fraud score<br/>and score drivers"]
@@ -197,7 +197,7 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-The suite covers the validation rules and drives the app headlessly with Streamlit's `AppTest`: each sample gives its expected verdict, balances auto-calculate, results go stale when inputs change, Reset clears everything, and a zero amount is blocked.
+The suite covers the validation rules and drives the app headlessly with Streamlit's `AppTest`: typical legitimate and fraudulent transactions give the expected verdict, balances auto-calculate, results go stale when inputs change, Reset clears everything, and a zero amount is blocked.
 
 </details>
 
