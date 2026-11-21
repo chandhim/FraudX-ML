@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://fraudx.streamlit.app"><img src="https://static.streamlit.io/badges/streamlit_badge_black_white.svg" alt="Open in Streamlit"></a>
+  <a href="https://fraudx-ml.streamlit.app"><img src="https://static.streamlit.io/badges/streamlit_badge_black_white.svg" alt="Open in Streamlit"></a>
   <a href="https://github.com/chandhim/FraudX-ML/actions/workflows/tests.yml"><img src="https://github.com/chandhim/FraudX-ML/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
   <img src="https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white" alt="Python 3.12+">
   <img src="https://img.shields.io/badge/scikit--learn-1.7.2-F7931E?logo=scikitlearn&logoColor=white" alt="scikit-learn 1.7.2">
@@ -13,7 +13,7 @@
 
 <p align="center">
   <b>Score a mobile-money transaction, see the verdict, and see <i>why</i> the model decided it.</b><br>
-  <a href="https://fraudx.streamlit.app"><b>Open the live app</b></a> ·
+  <a href="https://fraudx-ml.streamlit.app"><b>Open the live app</b></a> ·
   <a href="#how-it-works">How it works</a> ·
   <a href="#model-performance">Model performance</a> ·
   <a href="#run-it-locally">Run it locally</a>
