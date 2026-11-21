@@ -14,7 +14,7 @@ from validation import validate_transaction
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_PATH = BASE_DIR / "fraud_detection_model.pkl"
 LOGO_PATH = BASE_DIR / "images" / "FraudX.svg"
-REPO_URL = "https://github.com/chandhim/FraudX"
+REPO_URL = "https://github.com/chandhim/FraudX-ML"
 
 # The logo SVG is a 375x375 canvas with the artwork in a small band;
 # this viewBox crops the display to the artwork (the file is unchanged).

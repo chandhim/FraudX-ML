@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://fraudx.streamlit.app"><img src="https://static.streamlit.io/badges/streamlit_badge_black_white.svg" alt="Open in Streamlit"></a>
-  <a href="https://github.com/chandhim/FraudX/actions/workflows/tests.yml"><img src="https://github.com/chandhim/FraudX/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
+  <a href="https://github.com/chandhim/FraudX-ML/actions/workflows/tests.yml"><img src="https://github.com/chandhim/FraudX-ML/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
   <img src="https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white" alt="Python 3.12+">
   <img src="https://img.shields.io/badge/scikit--learn-1.7.2-F7931E?logo=scikitlearn&logoColor=white" alt="scikit-learn 1.7.2">
   <img src="https://img.shields.io/badge/Streamlit-1.67-FF4B4B?logo=streamlit&logoColor=white" alt="Streamlit 1.67">
@@ -120,11 +120,11 @@ Results on a 30% stratified hold-out set (1,908,786 transactions, 2,464 of them 
 > Requires **Python 3.12 or newer** (needed by the pinned numpy, pandas and Streamlit versions).
 
 ```bash
-git clone https://github.com/chandhim/FraudX.git
+git clone https://github.com/chandhim/FraudX-ML.git
 ```
 
 ```bash
-cd FraudX
+cd FraudX-ML
 ```
 
 <details>
@@ -228,7 +228,7 @@ The suite covers the validation rules and drives the app headlessly with Streaml
 ## Project structure
 
 ```
-FraudX/
+FraudX-ML/
 ├── fraud_detection.py         # Streamlit app
 ├── validation.py              # input checks used by the app
 ├── icons.py                   # Lucide icons (ISC license) used by the app
